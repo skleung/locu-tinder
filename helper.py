@@ -3,18 +3,43 @@ import urllib
 from environment_variables import *
 import json
 
-def queryPluck(q):
+def searchForNearbyBuisness(locu_id, category = None):
     """
     """
-    BASE_URL = 'https://apis.berkeley.edu/solr/fsm/select'
-    url = "{base_url}?".format(base_url=BASE_URL) + urllib.urlencode({
-        'q':q,
-        'wt':'python',
-        'app_id':FSM_APP_ID,
-        'app_key':FSM_APP_KEY,
-        'facet':'true',
-        'facet.field':'fsmTypeOfResource',
-        'facet.mincount':1
-    })
-    result = urllib2.urlopen(url)
-    return eval(result.read())
+    url = 'https://api.locu.com/v2/venue/search'
+
+    values = {'api_key' : 'Michael Foord',
+          'fields' : [ "name", "location", "contact" ],
+          "venue_queries" : [
+            {
+              "locu_id": locu_id
+            }
+          ]
+        }
+
+    data = urllib.urlencode(values)
+    req = urllib2.Request(url, data)
+    result = urllib2.urlopen(req)
+    venue_object = result.read()
+    try:
+        coordinates = venue_object['location']['geo']["coordinates"] # longitude is first
+    except Exception, e:
+        print 'ask for forgiveness'
+        return
+
+
+    venue_queries = { "location": {"geo": "$in_lat_lng_radius" : [coordinates[1], coordinates[0], 5000]}}
+
+    if category:
+        venue_queries["category"] = category
+
+    values = {'api_key' : 'Michael Foord',
+          'fields' : [ "name", "location", "contact" ],
+          "venue_queries" : [venue_queries]
+        }
+
+    data = urllib.urlencode(values)
+
+    req = urllib2.Request(url, data)
+    result = urllib2.urlopen(req)
+    return result.read()
