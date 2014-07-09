@@ -9,11 +9,19 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % (self.nickname)
 
-class Post(db.Model):
+class Match(db.Model):
     id = db.Column(db.Integer, primary_key = True)
-    body = db.Column(db.String(140))
-    timestamp = db.Column(db.DateTime)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    requester_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    messages = db.relationship('Message', backref = 'match', lazy = 'dynamic')
 
     def __repr__(self):
-        return '<Post %r>' % (self.body)
+        return '<Match %r>' % (self.body)
+
+class Message(db.Model):
+	sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+	receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+	content = db.Column(db.String(5000))
+	timestamp = db.Column(db.DateTime)
+	def __repr__(self):
+        return '<Message %r>' % (self.body)
